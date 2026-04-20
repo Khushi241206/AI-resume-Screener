@@ -49,7 +49,7 @@
         </div>
     </section>
 
-    <!-- Main Content Container (Hidden during landing) -->
+    <!-- Main Content Container -->
     <div id="main-interface" class="max-w-7xl mx-auto px-4 py-6 md:px-8 hide">
         
         <!-- App Header -->
@@ -71,7 +71,7 @@
             </button>
         </header>
 
-        <!-- VIEW 2: Setup/Analysis -->
+        <!-- VIEW 2: Setup -->
         <section id="view-home" class="page-transition space-y-8 hide">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 <!-- JD Input -->
@@ -103,9 +103,7 @@
                             <p class="text-[10px] text-slate-400 mt-2 uppercase font-bold tracking-widest">Multi-upload supported</p>
                         </div>
                     </div>
-                    <div id="file-list" class="mt-6 space-y-2 max-h-32 overflow-y-auto custom-scrollbar">
-                        <!-- Files show here -->
-                    </div>
+                    <div id="file-list" class="mt-6 space-y-2 max-h-32 overflow-y-auto custom-scrollbar"></div>
                 </div>
             </div>
 
@@ -116,7 +114,7 @@
         </section>
 
         <!-- VIEW 3: Results -->
-        <section id="view-results" class="page-transition space-y-12 hide">
+        <section id="view-results" class="page-transition space-y-12 hide pb-20">
             <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 px-4">
                 <div>
                     <h2 class="text-5xl font-black text-slate-900 tracking-tighter">Ranking Reports</h2>
@@ -171,6 +169,20 @@
                 'cloud': ['Cloud Architect'],
                 'node': ['Backend Developer']
             },
+            getAccuracyEmoji: (score) => {
+                if (score >= 90) return '🔥';
+                if (score >= 75) return '⚡';
+                if (score >= 50) return '📈';
+                return '💡';
+            },
+            getMNCAdvice: (score, matches, gaps) => {
+                const advice = [];
+                if (score < 80) advice.push("Quantify your achievements with numbers (e.g., 'Reduced latency by 40%') to pass MNC ATS filters.");
+                if (gaps.length > 0) advice.push(`Explicitly list "${gaps[0]}" in your skills section to improve technical ranking.`);
+                advice.push("Use a clean, single-column layout. MNC systems struggle with multi-column sidebars or complex graphics.");
+                advice.push("Ensure your LinkedIn profile URL is clickable and updated to match the resume content.");
+                return advice;
+            },
             analyze: (resume, jd) => {
                 const rt = NLP.tokenize(resume);
                 const jt = NLP.tokenize(jd);
@@ -180,28 +192,28 @@
                 const gaps = skills.filter(s => !rt.includes(s)).slice(0, 4);
                 
                 const raw = (new Set(rt.filter(t => jUnique.has(t))).size / (jUnique.size || 1)) * 100;
+                const score = Math.min(Math.round(raw * 2.8), 100);
                 const suggested = new Set();
                 rt.forEach(t => { if(NLP.jobMap[t]) NLP.jobMap[t].forEach(r => suggested.add(r)) });
 
                 return {
-                    score: Math.min(Math.round(raw * 2.8), 100),
+                    score,
+                    emoji: NLP.getAccuracyEmoji(score),
                     matches,
                     gaps,
-                    suggested: Array.from(suggested).slice(0, 3)
+                    suggested: Array.from(suggested).slice(0, 3),
+                    mncAdvice: NLP.getMNCAdvice(score, matches, gaps)
                 };
             }
         };
 
         function navigateTo(view) {
             STATE.currentView = view;
-            
-            // Hide everything first
             document.getElementById('view-landing').classList.add('hide');
             document.getElementById('main-interface').classList.remove('hide');
             document.getElementById('view-home').classList.add('hide');
             document.getElementById('view-results').classList.add('hide');
 
-            // Show selected
             if(view === 'landing') {
                 document.getElementById('view-landing').classList.remove('hide');
                 document.getElementById('main-interface').classList.add('hide');
@@ -209,7 +221,6 @@
                 document.getElementById(`view-${view}`).classList.remove('hide');
             }
 
-            // Update Nav
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 btn.classList.remove('bg-white', 'text-indigo-600', 'shadow-md');
                 btn.classList.add('text-slate-400');
@@ -230,12 +241,12 @@
         function renderFileList() {
             const list = document.getElementById('file-list');
             list.innerHTML = STATE.files.map((f, i) => `
-                <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-xl group">
+                <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-xl">
                     <div class="flex items-center gap-3">
                         <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                         <span class="text-[11px] font-black text-slate-600 truncate max-w-[150px]">${f.name}</span>
                     </div>
-                    <button onclick="removeFile(${i})" class="w-6 h-6 flex items-center justify-center hover:bg-red-50 hover:text-red-500 rounded-lg transition-colors">
+                    <button onclick="removeFile(${i})" class="w-6 h-6 flex items-center justify-center hover:bg-red-50 hover:text-red-500 rounded-lg">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                 </div>
@@ -287,11 +298,26 @@
             });
         }
 
+        function downloadReport(id) {
+            const res = STATE.results.find(r => r.id === id);
+            if (!res) return;
+            const content = `SCREENER.AI ANALYSIS REPORT\n=========================\n\nCandidate: ${res.name}\nProfile ID: ${res.id}\nOverall Match Score: ${res.score}%\nEvaluation: ${res.emoji}\n\nMatched Skills:\n${res.matches.join(', ')}\n\nIdentified Gaps:\n${res.gaps.join(', ')}\n\nMNC IMPROVEMENT ROADMAP:\n${res.mncAdvice.map(a => '- ' + a).join('\n')}\n\nRecommended Roles:\n${res.suggested.join(', ')}\n\nGenerated on: ${new Date().toLocaleDateString()}`;
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ScreenerAI_Report_${res.id}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
         function renderResults() {
             const grid = document.getElementById('results-grid');
             grid.innerHTML = STATE.results.map(res => `
                 <div class="bg-white rounded-[4rem] border border-slate-100 p-10 md:p-16 flex flex-col lg:flex-row gap-16 relative overflow-hidden group hover:border-indigo-200 transition-all shadow-xl shadow-slate-200/30">
-                    <div class="lg:w-1/3 flex flex-col items-center border-b lg:border-b-0 lg:border-r border-slate-100 pb-12 lg:pb-0 lg:pr-16">
+                    
+                    <!-- Left: Score and Identity -->
+                    <div class="lg:w-1/4 flex flex-col items-center border-b lg:border-b-0 lg:border-r border-slate-100 pb-12 lg:pb-0 lg:pr-16">
                         <div class="relative w-48 h-48 flex items-center justify-center">
                             <svg class="w-full h-full transform -rotate-90">
                                 <circle cx="96" cy="96" r="88" stroke="#f1f5f9" stroke-width="12" fill="transparent" />
@@ -299,14 +325,20 @@
                                     stroke-dasharray="552" stroke-dashoffset="${552 - (res.score / 100) * 552}" class="score-ring" stroke-linecap="round" />
                             </svg>
                             <div class="absolute text-center">
+                                <span class="text-3xl block mb-1">${res.emoji}</span>
                                 <p class="text-5xl font-black text-slate-900">${res.score}%</p>
-                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Match Rate</p>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Accuracy Score</p>
                             </div>
                         </div>
                         <h3 class="mt-10 text-2xl font-black text-slate-900 text-center">${res.name}</h3>
-                        <p class="text-xs font-bold text-indigo-500 mt-2 uppercase tracking-widest">Profile UID: ${res.id}</p>
+                        <p class="text-xs font-bold text-indigo-500 mt-2 uppercase tracking-widest">ID: ${res.id}</p>
+                        <button onclick="downloadReport('${res.id}')" class="mt-8 flex items-center gap-2 px-6 py-3 bg-slate-100 hover:bg-indigo-600 hover:text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            Save Report
+                        </button>
                     </div>
 
+                    <!-- Middle: Skills and Gaps -->
                     <div class="lg:w-1/3 space-y-10">
                         <div>
                             <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
@@ -319,18 +351,26 @@
                         </div>
                         <div>
                             <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
-                                <div class="w-2 h-2 bg-amber-400 rounded-full"></div> Skill Gaps
+                                <div class="w-2 h-2 bg-indigo-600 rounded-full"></div> MNC Improvement Roadmap
                             </h4>
-                            <div class="flex flex-wrap gap-2.5 opacity-50">
-                                ${res.gaps.map(s => `<span class="px-4 py-2 bg-slate-50 text-slate-400 rounded-xl text-[10px] font-black uppercase border border-slate-100 line-through">${s}</span>`).join('')}
+                            <div class="space-y-3">
+                                ${res.mncAdvice.map(a => `
+                                    <div class="flex items-start gap-3 p-3 bg-indigo-50/50 rounded-xl border border-indigo-100/50">
+                                        <svg class="w-4 h-4 text-indigo-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                                        <p class="text-[11px] text-slate-600 font-bold leading-relaxed">${a}</p>
+                                    </div>
+                                `).join('')}
                             </div>
                         </div>
                     </div>
 
-                    <div class="lg:w-1/3 bg-indigo-50/30 rounded-[3rem] p-10 border border-indigo-100/50">
+                    <!-- Right: Role Discovery -->
+                    <div class="lg:w-1/3 bg-slate-50/80 rounded-[3rem] p-10 border border-slate-100 relative">
+                        <div class="absolute -top-4 -right-4 w-20 h-20 bg-white rounded-full flex items-center justify-center border border-slate-100 shadow-lg">
+                            <span class="text-2xl">🚀</span>
+                        </div>
                         <h4 class="text-[11px] font-black text-indigo-500 uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-                            Recommended Roles
+                            Role Discoveries
                         </h4>
                         <div class="space-y-4">
                             ${res.suggested.map(job => `
@@ -339,6 +379,7 @@
                                     <svg class="w-4 h-4 text-slate-300 group-hover/job:text-indigo-600 transition-transform group-hover/job:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                                 </div>
                             `).join('')}
+                            ${res.suggested.length === 0 ? '<p class="text-xs text-slate-400 text-center py-4">Expand skill list to discover more roles</p>' : ''}
                         </div>
                     </div>
                 </div>
@@ -346,7 +387,7 @@
         }
 
         function openJobDetail(job, candidate) {
-            const desc = STATE.jobData[job] || "Recommended based on the candidate specific technical vocabulary and experience patterns.";
+            const desc = STATE.jobData[job] || "Recommended based on core technical vocabulary and project experience patterns.";
             const modal = document.getElementById('job-modal');
             const content = document.getElementById('modal-content');
             
@@ -362,7 +403,7 @@
                 </div>
                 <div class="p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100">
                     <p class="text-sm leading-relaxed text-slate-600 font-medium">
-                        Our AI engine has mapped <span class="font-black text-slate-900">${candidate}</span>'s profile to this role. ${desc}
+                        Our engine has mapped <span class="font-black text-slate-900">${candidate}</span>'s profile to this role. ${desc}
                     </p>
                 </div>
                 <div class="space-y-4">
@@ -381,7 +422,6 @@
             document.getElementById('job-modal').classList.add('hide');
         }
 
-        // Init
         window.onload = () => { navigateTo('landing'); };
     </script>
 </body>
