@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Screener.AI | Precision Talent Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
+        .page-transition { animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.3); }
+        .hide { display: none !important; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        .score-ring { transition: stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .hero-gradient { background: radial-gradient(circle at top right, #eef2ff, transparent), radial-gradient(circle at bottom left, #eff6ff, transparent); }
+    </style>
+</head>
+<body class="bg-[#F8FAFC] text-slate-900 min-h-screen">
+
+    <!-- Background Decoration -->
+    <div class="fixed inset-0 pointer-events-none -z-10 hero-gradient"></div>
+
+    <!-- VIEW 1: LANDING PAGE -->
+    <section id="view-landing" class="min-h-screen flex flex-col items-center justify-center p-6 text-center page-transition">
+        <div class="w-24 h-24 bg-indigo-600 rounded-[2rem] flex items-center justify-center shadow-2xl shadow-indigo-200 mb-8 animate-bounce">
+            <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+        </div>
+        <h1 class="text-6xl md:text-8xl font-black tracking-tighter text-slate-900 mb-4">
+            SCREENER<span class="text-indigo-600">.AI</span>
+        </h1>
+        <p class="text-lg md:text-xl text-slate-500 font-medium max-w-2xl mb-12 leading-relaxed">
+            Revolutionize your hiring workflow with local NLP intelligence. 
+            Rank candidates, identify skill gaps, and discover career paths instantly.
+        </p>
+        <button onclick="navigateTo('home')" class="group relative px-12 py-5 bg-slate-900 text-white rounded-full font-black text-lg shadow-2xl hover:bg-black transition-all transform hover:scale-105 active:scale-95">
+            <span class="relative z-10 flex items-center gap-3">
+                GET STARTED 
+                <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+            </span>
+        </button>
+        <div class="mt-20 flex gap-12 grayscale opacity-40">
+            <span class="font-black tracking-widest text-xs uppercase">Local Analysis</span>
+            <span class="font-black tracking-widest text-xs uppercase">PDF Verified</span>
+            <span class="font-black tracking-widest text-xs uppercase">Privacy First</span>
+        </div>
+    </section>
+
+    <!-- Main Content Container (Hidden during landing) -->
+    <div id="main-interface" class="max-w-7xl mx-auto px-4 py-6 md:px-8 hide">
+        
+        <!-- App Header -->
+        <header class="flex items-center justify-between mb-8 glass p-4 rounded-[2.5rem] shadow-sm sticky top-4 z-50">
+            <div class="flex items-center gap-3 cursor-pointer" onclick="location.reload()">
+                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-100">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                </div>
+                <h1 class="text-xl font-black tracking-tight hidden sm:block">SCREENER<span class="text-indigo-600">.AI</span></h1>
+            </div>
+
+            <nav class="flex bg-slate-100/80 p-1.5 rounded-[1.5rem]">
+                <button onclick="navigateTo('home')" id="nav-home" class="nav-btn px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all">Setup</button>
+                <button onclick="navigateTo('results')" id="nav-results" class="nav-btn px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all text-slate-400 pointer-events-none opacity-50">Reports</button>
+            </nav>
+
+            <button onclick="location.reload()" class="p-2.5 hover:bg-slate-100 rounded-full transition-colors">
+                <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+            </button>
+        </header>
+
+        <!-- VIEW 2: Setup/Analysis -->
+        <section id="view-home" class="page-transition space-y-8 hide">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- JD Input -->
+                <div class="lg:col-span-7 bg-white rounded-[3rem] p-10 shadow-xl shadow-slate-200/40 border border-slate-50">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        </div>
+                        <h2 class="font-black text-slate-800 uppercase tracking-tighter">Target Job Description</h2>
+                    </div>
+                    <textarea id="jd-input" class="w-full h-72 p-6 bg-slate-50 rounded-[2rem] outline-none focus:ring-4 focus:ring-indigo-50 transition-all text-sm leading-relaxed text-slate-600 border border-transparent focus:bg-white focus:border-indigo-100" placeholder="Paste the job requirements here..."></textarea>
+                </div>
+
+                <!-- File Drop -->
+                <div class="lg:col-span-5 bg-white rounded-[3rem] p-10 shadow-xl shadow-slate-200/40 border border-slate-50 flex flex-col">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        </div>
+                        <h2 class="font-black text-slate-800 uppercase tracking-tighter">Upload Resumes</h2>
+                    </div>
+                    <div class="relative flex-grow border-2 border-dashed border-slate-100 rounded-[2rem] p-8 hover:bg-indigo-50/20 transition-all group cursor-pointer">
+                        <input type="file" id="file-input" multiple accept=".pdf" class="absolute inset-0 opacity-0 cursor-pointer z-10">
+                        <div class="h-full flex flex-col items-center justify-center text-center pointer-events-none">
+                            <div class="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 group-hover:scale-110 group-hover:text-indigo-600 transition-all mb-4">
+                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                            </div>
+                            <p class="text-sm font-black text-slate-700">Select PDF Files</p>
+                            <p class="text-[10px] text-slate-400 mt-2 uppercase font-bold tracking-widest">Multi-upload supported</p>
+                        </div>
+                    </div>
+                    <div id="file-list" class="mt-6 space-y-2 max-h-32 overflow-y-auto custom-scrollbar">
+                        <!-- Files show here -->
+                    </div>
+                </div>
+            </div>
+
+            <button id="process-btn" onclick="processAnalysis()" class="w-full py-8 bg-slate-900 hover:bg-black text-white rounded-[2.5rem] font-black text-xl shadow-2xl transition-all active:scale-[0.98] flex items-center justify-center gap-4 group">
+                <span>GENERATE SCREENING DASHBOARD</span>
+                <svg class="w-6 h-6 group-hover:translate-x-2 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+            </button>
+        </section>
+
+        <!-- VIEW 3: Results -->
+        <section id="view-results" class="page-transition space-y-12 hide">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 px-4">
+                <div>
+                    <h2 class="text-5xl font-black text-slate-900 tracking-tighter">Ranking Reports</h2>
+                    <p class="text-slate-500 font-bold mt-3 flex items-center gap-2">
+                        <span class="w-2 h-2 bg-indigo-500 rounded-full"></span>
+                        AI-generated talent alignment metrics
+                    </p>
+                </div>
+            </div>
+
+            <div id="results-grid" class="grid grid-cols-1 gap-12">
+                <!-- Reports Injected Here -->
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Job Modal -->
+    <div id="job-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 hide">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-md" onclick="closeModal()"></div>
+        <div class="relative bg-white w-full max-w-lg rounded-[3.5rem] p-12 shadow-2xl animate-in zoom-in-95 transition-all">
+            <button onclick="closeModal()" class="absolute top-8 right-8 p-2 hover:bg-slate-50 rounded-full">
+                <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <div id="modal-content" class="space-y-8"></div>
+        </div>
+    </div>
+
+    <script>
+        const STATE = {
+            currentView: 'landing',
+            files: [],
+            results: [],
+            jobData: {
+                'Frontend Engineer': 'Specializes in high-performance user interfaces and React architectures. Strong alignment with candidate visual logic.',
+                'Data Scientist': 'Analyzes multidimensional datasets to drive business insights. Matches the candidate analytical fingerprint.',
+                'Backend Developer': 'Architects robust server-side systems and APIs. Fits the candidate technical depth in Node.js/Python.',
+                'Product Manager': 'Bridging the gap between user needs and technical execution. Ideal for the candidate leadership traits.',
+                'Cloud Architect': 'Designs scalable cloud infrastructure and deployment pipelines. Strong match for DevOps-leaning profiles.'
+            }
+        };
+
+        const NLP = {
+            stopWords: new Set(['a', 'an', 'the', 'and', 'or', 'in', 'on', 'at', 'to', 'for', 'with', 'is', 'are', 'was', 'of']),
+            tokenize: t => t.toLowerCase().replace(/[^\w\s]/g, ' ').split(/\s+/).filter(w => w.length > 2 && !NLP.stopWords.has(w)),
+            jobMap: {
+                'javascript': ['Frontend Engineer', 'Fullstack Developer'],
+                'python': ['Data Scientist', 'Backend Developer'],
+                'react': ['Frontend Engineer'],
+                'management': ['Product Manager'],
+                'aws': ['Cloud Architect'],
+                'cloud': ['Cloud Architect'],
+                'node': ['Backend Developer']
+            },
+            analyze: (resume, jd) => {
+                const rt = NLP.tokenize(resume);
+                const jt = NLP.tokenize(jd);
+                const jUnique = new Set(jt);
+                const skills = Array.from(jUnique).slice(0, 10);
+                const matches = skills.filter(s => rt.includes(s));
+                const gaps = skills.filter(s => !rt.includes(s)).slice(0, 4);
+                
+                const raw = (new Set(rt.filter(t => jUnique.has(t))).size / (jUnique.size || 1)) * 100;
+                const suggested = new Set();
+                rt.forEach(t => { if(NLP.jobMap[t]) NLP.jobMap[t].forEach(r => suggested.add(r)) });
+
+                return {
+                    score: Math.min(Math.round(raw * 2.8), 100),
+                    matches,
+                    gaps,
+                    suggested: Array.from(suggested).slice(0, 3)
+                };
+            }
+        };
+
+        function navigateTo(view) {
+            STATE.currentView = view;
+            
+            // Hide everything first
+            document.getElementById('view-landing').classList.add('hide');
+            document.getElementById('main-interface').classList.remove('hide');
+            document.getElementById('view-home').classList.add('hide');
+            document.getElementById('view-results').classList.add('hide');
+
+            // Show selected
+            if(view === 'landing') {
+                document.getElementById('view-landing').classList.remove('hide');
+                document.getElementById('main-interface').classList.add('hide');
+            } else {
+                document.getElementById(`view-${view}`).classList.remove('hide');
+            }
+
+            // Update Nav
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-white', 'text-indigo-600', 'shadow-md');
+                btn.classList.add('text-slate-400');
+            });
+            const activeBtn = document.getElementById(`nav-${view}`);
+            if(activeBtn) {
+                activeBtn.classList.remove('text-slate-400', 'pointer-events-none', 'opacity-50');
+                activeBtn.classList.add('bg-white', 'text-indigo-600', 'shadow-md');
+            }
+        }
+
+        document.getElementById('file-input').addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            STATE.files = [...STATE.files, ...files];
+            renderFileList();
+        });
+
+        function renderFileList() {
+            const list = document.getElementById('file-list');
+            list.innerHTML = STATE.files.map((f, i) => `
+                <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-xl group">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        <span class="text-[11px] font-black text-slate-600 truncate max-w-[150px]">${f.name}</span>
+                    </div>
+                    <button onclick="removeFile(${i})" class="w-6 h-6 flex items-center justify-center hover:bg-red-50 hover:text-red-500 rounded-lg transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function removeFile(i) {
+            STATE.files.splice(i, 1);
+            renderFileList();
+        }
+
+        async function processAnalysis() {
+            const jd = document.getElementById('jd-input').value;
+            if(!jd || STATE.files.length === 0) return;
+
+            const btn = document.getElementById('process-btn');
+            btn.innerHTML = `<span>OPTIMIZING VECTORS...</span>`;
+            btn.disabled = true;
+
+            const results = [];
+            for(const f of STATE.files) {
+                const text = await extractText(f);
+                const report = NLP.analyze(text, jd);
+                results.push({ name: f.name, id: Math.random().toString(36).substr(2, 6).toUpperCase(), ...report });
+            }
+            STATE.results = results.sort((a,b) => b.score - a.score);
+            renderResults();
+            navigateTo('results');
+            btn.innerHTML = `<span>GENERATE SCREENING DASHBOARD</span>`;
+            btn.disabled = false;
+        }
+
+        async function extractText(file) {
+            const reader = new FileReader();
+            return new Promise(resolve => {
+                reader.onload = async (e) => {
+                    const pdfjsLib = window['pdfjs-dist/build/pdf'];
+                    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+                    const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(e.target.result) }).promise;
+                    let text = "";
+                    for(let i=1; i<=pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const content = await page.getTextContent();
+                        text += content.items.map(it => it.str).join(" ") + " ";
+                    }
+                    resolve(text);
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        function renderResults() {
+            const grid = document.getElementById('results-grid');
+            grid.innerHTML = STATE.results.map(res => `
+                <div class="bg-white rounded-[4rem] border border-slate-100 p-10 md:p-16 flex flex-col lg:flex-row gap-16 relative overflow-hidden group hover:border-indigo-200 transition-all shadow-xl shadow-slate-200/30">
+                    <div class="lg:w-1/3 flex flex-col items-center border-b lg:border-b-0 lg:border-r border-slate-100 pb-12 lg:pb-0 lg:pr-16">
+                        <div class="relative w-48 h-48 flex items-center justify-center">
+                            <svg class="w-full h-full transform -rotate-90">
+                                <circle cx="96" cy="96" r="88" stroke="#f1f5f9" stroke-width="12" fill="transparent" />
+                                <circle cx="96" cy="96" r="88" stroke="${res.score > 80 ? '#10b981' : '#6366f1'}" stroke-width="12" fill="transparent" 
+                                    stroke-dasharray="552" stroke-dashoffset="${552 - (res.score / 100) * 552}" class="score-ring" stroke-linecap="round" />
+                            </svg>
+                            <div class="absolute text-center">
+                                <p class="text-5xl font-black text-slate-900">${res.score}%</p>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Match Rate</p>
+                            </div>
+                        </div>
+                        <h3 class="mt-10 text-2xl font-black text-slate-900 text-center">${res.name}</h3>
+                        <p class="text-xs font-bold text-indigo-500 mt-2 uppercase tracking-widest">Profile UID: ${res.id}</p>
+                    </div>
+
+                    <div class="lg:w-1/3 space-y-10">
+                        <div>
+                            <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
+                                <div class="w-2 h-2 bg-emerald-500 rounded-full"></div> Skill Affinities
+                            </h4>
+                            <div class="flex flex-wrap gap-2.5">
+                                ${res.matches.map(s => `<span class="px-4 py-2 bg-emerald-50 text-emerald-700 rounded-xl text-[10px] font-black uppercase border border-emerald-100">${s}</span>`).join('')}
+                                ${res.matches.length === 0 ? '<p class="text-xs text-slate-300 italic">No direct matches</p>' : ''}
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
+                                <div class="w-2 h-2 bg-amber-400 rounded-full"></div> Skill Gaps
+                            </h4>
+                            <div class="flex flex-wrap gap-2.5 opacity-50">
+                                ${res.gaps.map(s => `<span class="px-4 py-2 bg-slate-50 text-slate-400 rounded-xl text-[10px] font-black uppercase border border-slate-100 line-through">${s}</span>`).join('')}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="lg:w-1/3 bg-indigo-50/30 rounded-[3rem] p-10 border border-indigo-100/50">
+                        <h4 class="text-[11px] font-black text-indigo-500 uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                            Recommended Roles
+                        </h4>
+                        <div class="space-y-4">
+                            ${res.suggested.map(job => `
+                                <div onclick="openJobDetail('${job}', '${res.name}')" class="flex items-center justify-between p-5 bg-white border border-slate-100 rounded-[1.5rem] hover:border-indigo-400 hover:shadow-xl hover:shadow-indigo-100/50 transition-all cursor-pointer group/job">
+                                    <span class="text-xs font-black text-slate-800 uppercase">${job}</span>
+                                    <svg class="w-4 h-4 text-slate-300 group-hover/job:text-indigo-600 transition-transform group-hover/job:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openJobDetail(job, candidate) {
+            const desc = STATE.jobData[job] || "Recommended based on the candidate specific technical vocabulary and experience patterns.";
+            const modal = document.getElementById('job-modal');
+            const content = document.getElementById('modal-content');
+            
+            content.innerHTML = `
+                <div class="flex items-center gap-6">
+                    <div class="w-16 h-16 bg-indigo-600 rounded-[1.5rem] flex items-center justify-center text-white shadow-xl shadow-indigo-100">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-3xl font-black text-slate-900">${job}</h3>
+                        <p class="text-[10px] font-black text-indigo-500 uppercase tracking-widest mt-1">Strategic Alignment</p>
+                    </div>
+                </div>
+                <div class="p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100">
+                    <p class="text-sm leading-relaxed text-slate-600 font-medium">
+                        Our AI engine has mapped <span class="font-black text-slate-900">${candidate}</span>'s profile to this role. ${desc}
+                    </p>
+                </div>
+                <div class="space-y-4">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Candidate Strengths for this role</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="p-3 bg-white border border-slate-100 rounded-xl text-[10px] font-black text-slate-800 uppercase flex items-center gap-2"><div class="w-1.5 h-1.5 bg-indigo-500 rounded-full"></div> Domain Depth</div>
+                        <div class="p-3 bg-white border border-slate-100 rounded-xl text-[10px] font-black text-slate-800 uppercase flex items-center gap-2"><div class="w-1.5 h-1.5 bg-indigo-500 rounded-full"></div> Technical Fit</div>
+                    </div>
+                </div>
+                <button onclick="closeModal()" class="w-full py-5 bg-slate-900 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest shadow-xl hover:bg-black transition-all">Close Perspective</button>
+            `;
+            modal.classList.remove('hide');
+        }
+
+        function closeModal() {
+            document.getElementById('job-modal').classList.add('hide');
+        }
+
+        // Init
+        window.onload = () => { navigateTo('landing'); };
+    </script>
+</body>
+</html>
